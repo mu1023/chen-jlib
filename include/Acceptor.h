@@ -27,7 +27,7 @@ public:
 
 	bool Init(NetMgr* mgr);
 
-	void OnMessage(ULONG_PTR key, UInt32 size)override;
+	void OnMessage(CompletionKey key, UInt32 size)override;
 
 	void Clear()override;
 

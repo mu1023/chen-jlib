@@ -90,7 +90,8 @@ enum CompletionKey
 {
 	CK_NONE = 0,
 	CK_ACCPET = 1,
-	CL_RECV
+	CL_RECV = 2,
+	CL_THREAD_CLOSE = 3
 };
 
 enum TagReqHandle
@@ -100,7 +101,7 @@ enum TagReqHandle
 };
 struct IOCPHandler
 {
-	virtual void OnMessage(ULONG_PTR key, UInt32 size) = 0;
+	virtual void OnMessage(CompletionKey key, UInt32 size) = 0;
 	//virtual void OnError(ULONG_PTR key, UInt32 error) {}
 	virtual void Clear() {};
 };

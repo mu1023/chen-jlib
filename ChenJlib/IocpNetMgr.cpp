@@ -39,9 +39,8 @@ bool IocpNetMgr::Initialize(NetCallBack* call, Int32 iMaxThread)
 		return false;
 	}
 
-	SYSTEM_INFO info;
-	GetSystemInfo(&info);
-	for (UInt32 i = 0; i < info.dwNumberOfProcessors * 2; ++i)
+	
+	for (UInt32 i = 0; i < iMaxThread; ++i)
 	{
 		std::thread* th = new std::thread(std::bind(&IocpNetMgr::WorkerProc, this));
 		m_WorkerThread.push_back(th);
@@ -75,7 +74,14 @@ bool IocpNetMgr::Initialize(NetCallBack* call, Int32 iMaxThread)
 		return false;
 	}
 
-	if (listen(m_Acceptor.m_ListenFd, SOMAXCONN) != 0)
+	unsigned long val = 1;
+	int nb = ioctlsocket(m_Acceptor.m_ListenFd, FIONBIO, &val);
+	if (nb != NO_ERROR)
+	{
+		return false;
+	}
+
+	if (listen(m_Acceptor.m_ListenFd, 128) != 0)
 	{
 		m_Acceptor.Clear();
 		return false;
@@ -96,8 +102,8 @@ bool IocpNetMgr::Initialize(NetCallBack* call, Int32 iMaxThread)
 	{
 		return false;
 	}
-	DWORD xx = 0;
-	if (!m_lpfnAcceptEx(m_Acceptor.m_ListenFd, m_Acceptor.m_SockFd, m_Acceptor.m_Buffer, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &xx, m_Acceptor))
+	DWORD bytes = 0;
+	if (!m_lpfnAcceptEx(m_Acceptor.m_ListenFd, m_Acceptor.m_SockFd, m_Acceptor.m_Buffer, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &bytes, m_Acceptor))
 	{
 		if (WSAGetLastError() != ERROR_IO_PENDING)
 		{
@@ -109,6 +115,26 @@ bool IocpNetMgr::Initialize(NetCallBack* call, Int32 iMaxThread)
 
 void IocpNetMgr::Upadete()
 {
+	while (true) 
+	{
+		DWORD num = 0;
+		ULONG_PTR comKey = 0;
+		LPOVERLAPPED overLapped = nullptr;
+		bool bRet = GetQueuedCompletionStatus(m_IocpHandle, &num, &comKey, &overLapped,500);
+		
+		CompletionKey cKey = (CompletionKey)comKey;
+
+		if ((CompletionKey)comKey == CompletionKey::CL_THREAD_CLOSE) 
+		{
+			return;
+		}
+		if ((CompletionKey)comKey == CompletionKey::CK_ACCPET)
+		{
+			((Overlapped*)overLapped)->handler->OnMessage((CompletionKey)comKey, num);
+			PostAccept();
+		}
+
+	}
 }
 
 void IocpNetMgr::Finialize()
@@ -121,7 +147,19 @@ void IocpNetMgr::WorkerProc()
 
 void IocpNetMgr::PostAccept()
 {
-	//PostQueuedCompletionStatus(m_IocpHandle, 0, CK_ACCPET, m_Acceptor);
+	m_Acceptor.m_SockFd = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+	if (m_Acceptor.m_SockFd == C_INVALID_SOCKET)
+	{
+		return ;
+	}
+	DWORD bytes = 0;
+	if (!m_lpfnAcceptEx(m_Acceptor.m_ListenFd, m_Acceptor.m_SockFd, m_Acceptor.m_Buffer, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &bytes, m_Acceptor))
+	{
+		if (sock_error() != ERROR_IO_PENDING)
+		{
+			return ;
+		}
+	}
 }
 
 

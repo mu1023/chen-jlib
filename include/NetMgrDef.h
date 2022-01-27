@@ -3,6 +3,7 @@
 
 class NetCallBack
 {
+public:
 	virtual bool OnNetConneted() = 0;
 	virtual bool OnNetAcceot() = 0;
 	virtual bool OnNetRecv() = 0;
