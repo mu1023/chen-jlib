@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <ws2tcpip.h>
-bool IocpNetMgr::Initialize(NetCallBack* call, Int32 iMaxThread)
+bool IocpNetMgr::Initialize(NetCallBack* call, Int32 iMaxThread, const char* ip, UInt16 port)
 {
 	if (call == nullptr) {
 		return false;
@@ -60,13 +60,17 @@ bool IocpNetMgr::Initialize(NetCallBack* call, Int32 iMaxThread)
 		return false;
 	}
 
+	//·Ç×èÈû
+	u_long val = 1;
+	ioctlsocket(m_Acceptor.m_ListenFd, FIONBIO, &val);
+
 	m_Acceptor.m_addr.sin_family = AF_INET;
-	if (inet_pton(AF_INET, "0.0.0.0", &m_Acceptor.m_addr.sin_addr.s_addr) < 0)
+	if (inet_pton(AF_INET, ip, &m_Acceptor.m_addr.sin_addr.s_addr) < 0)
 	{
 		std::cout << "inet pton err : errcode = " << sock_error() << std::endl;
 		return false;
 	}
-	m_Acceptor.m_addr.sin_port = htons(1234);
+	m_Acceptor.m_addr.sin_port = htons(port);
 
 	if (bind(m_Acceptor.m_ListenFd, (sockaddr*)&m_Acceptor.m_addr, sizeof(m_Acceptor.m_addr)) != 0)
 	{
@@ -93,48 +97,13 @@ bool IocpNetMgr::Initialize(NetCallBack* call, Int32 iMaxThread)
 		return false;
 	}
 
-	m_Acceptor.m_ReqType = TagReqHandle::TRH_ACCEPT;
-	m_Acceptor.m_SockFd = C_INVALID_SOCKET;
-	memset(m_Acceptor.m_Buffer, 0, sizeof(m_Acceptor.m_Buffer));
-
-	m_Acceptor.m_SockFd = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-	if (m_Acceptor.m_SockFd == C_INVALID_SOCKET)
-	{
-		return false;
-	}
-	DWORD bytes = 0;
-	if (!m_lpfnAcceptEx(m_Acceptor.m_ListenFd, m_Acceptor.m_SockFd, m_Acceptor.m_Buffer, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &bytes, m_Acceptor))
-	{
-		if (WSAGetLastError() != ERROR_IO_PENDING)
-		{
-			return false;
-		}
-	}
+	PostAccept();
 	return true;
 }
 
 void IocpNetMgr::Upadete()
 {
-	while (true) 
-	{
-		DWORD num = 0;
-		ULONG_PTR comKey = 0;
-		LPOVERLAPPED overLapped = nullptr;
-		bool bRet = GetQueuedCompletionStatus(m_IocpHandle, &num, &comKey, &overLapped,500);
-		
-		CompletionKey cKey = (CompletionKey)comKey;
-
-		if ((CompletionKey)comKey == CompletionKey::CL_THREAD_CLOSE) 
-		{
-			return;
-		}
-		if ((CompletionKey)comKey == CompletionKey::CK_ACCPET)
-		{
-			((Overlapped*)overLapped)->handler->OnMessage((CompletionKey)comKey, num);
-			PostAccept();
-		}
-
-	}
+	
 }
 
 void IocpNetMgr::Finialize()
@@ -143,24 +112,76 @@ void IocpNetMgr::Finialize()
 
 void IocpNetMgr::WorkerProc()
 {
+	while (true)
+	{
+		DWORD num = 0;
+		ULONG_PTR comKey = 0;
+		LPOVERLAPPED overLapped = nullptr;
+		bool bRet = GetQueuedCompletionStatus(m_IocpHandle, &num, &comKey, &overLapped, 500);
+
+		if (!bRet) {
+			continue;
+		}
+		CompletionKey cKey = (CompletionKey)comKey;
+
+		if ((CompletionKey)comKey == CompletionKey::CK_THREAD_CLOSE)
+		{
+			return;
+		}
+
+		if (overLapped != nullptr)
+		{
+			((Overlapped*)overLapped)->handler->OnMessage(bRet, (CompletionKey)comKey, num);
+		}
+		if ((CompletionKey)comKey == CompletionKey::CK_ACCPET)
+		{
+			PostAccept();
+			continue;
+		}
+		switch (((Overlapped*)overLapped)->tagReqHandle)
+		{
+		case TRQ_NONE:
+			break;
+		case TRH_SEND:
+			break;
+		case TRH_RECV:
+			break;
+		default:
+			break;
+		}
+
+	}
 }
 
 void IocpNetMgr::PostAccept()
 {
-	m_Acceptor.m_SockFd = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-	if (m_Acceptor.m_SockFd == C_INVALID_SOCKET)
+	int t = 10;
+	while (t--)
 	{
-		return ;
-	}
-	DWORD bytes = 0;
-	if (!m_lpfnAcceptEx(m_Acceptor.m_ListenFd, m_Acceptor.m_SockFd, m_Acceptor.m_Buffer, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &bytes, m_Acceptor))
-	{
-		if (sock_error() != ERROR_IO_PENDING)
-		{
-			return ;
-		}
-	}
-}
+		m_Acceptor.m_SockFd = C_INVALID_SOCKET;
+		memset(m_Acceptor.m_Buffer, 0, sizeof(m_Acceptor.m_Buffer));
 
+		m_Acceptor.m_SockFd = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+		if (m_Acceptor.m_SockFd == C_INVALID_SOCKET)
+		{
+			Sleep(1);
+			break;
+		}
+		DWORD bytes = 0;
+		if (!m_lpfnAcceptEx(m_Acceptor.m_ListenFd, m_Acceptor.m_SockFd, m_Acceptor.m_Buffer, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &bytes, m_Acceptor))
+		{
+			if (WSAGetLastError() != ERROR_IO_PENDING)
+			{
+				closesocket(m_Acceptor.m_SockFd);
+				m_Acceptor.m_SockFd = C_INVALID_SOCKET;
+				Sleep(1);
+				continue;
+			}
+		}
+		return;
+	}
+	//error
+	return;
+}
 
 #endif // WINDOWS_FLAG

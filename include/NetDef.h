@@ -90,18 +90,18 @@ enum CompletionKey
 {
 	CK_NONE = 0,
 	CK_ACCPET = 1,
-	CL_RECV = 2,
-	CL_THREAD_CLOSE = 3
+	CK_THREAD_CLOSE = 2,
 };
 
 enum TagReqHandle
 {
 	TRQ_NONE = 0,
-	TRH_ACCEPT = 1,
+	TRH_SEND = 1,
+	TRH_RECV = 2,
 };
 struct IOCPHandler
 {
-	virtual void OnMessage(CompletionKey key, UInt32 size) = 0;
+	virtual void OnMessage(bool bSucc,CompletionKey key, UInt32 size) = 0;
 	//virtual void OnError(ULONG_PTR key, UInt32 error) {}
 	virtual void Clear() {};
 };
@@ -110,6 +110,7 @@ struct IOCPHandler
 struct Overlapped : public OVERLAPPED
 {
 	IOCPHandler* handler;
+	TagReqHandle tagReqHandle;
 };
 
 template<class T>

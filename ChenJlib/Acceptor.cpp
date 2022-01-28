@@ -21,7 +21,7 @@ bool Acceptor::Init(NetMgr* mgr)
 	return true;
 }
 
-void Acceptor::OnMessage(CompletionKey key, UInt32 size)
+void Acceptor::OnMessage(bool bSucc, CompletionKey key, UInt32 size)
 {
 	if (setsockopt(m_SockFd, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&m_ListenFd, sizeof(m_ListenFd)) != 0)
 	{

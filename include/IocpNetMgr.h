@@ -14,7 +14,7 @@ const UInt32 MAX_THREAD_NUM = 100;
 
 class IocpNetMgr:public NetMgr
 {
-	bool Initialize(NetCallBack* call, Int32 iMaxThread) override;
+	bool Initialize(NetCallBack* call, Int32 iMaxThread, const char* ip, UInt16 port) override;
 	void Upadete() override;
 	void Finialize() override;
 
