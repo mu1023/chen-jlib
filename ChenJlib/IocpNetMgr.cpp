@@ -3,6 +3,16 @@
 
 #include <iostream>
 #include <ws2tcpip.h>
+IocpNetMgr::IocpNetMgr()
+{
+	m_allocID = 0;
+	m_ListenSock = C_INVALID_SOCKET;
+	m_IocpHandle = 0;
+
+}
+IocpNetMgr::~IocpNetMgr()
+{
+}
 bool IocpNetMgr::Initialize(NetCallBack* call, Int32 iMaxThread, const char* ip, UInt16 port)
 {
 	if (call == nullptr) {
@@ -61,8 +71,11 @@ bool IocpNetMgr::Initialize(NetCallBack* call, Int32 iMaxThread, const char* ip,
 	}
 
 	//·Ç×èÈû
-	u_long val = 1;
-	ioctlsocket(m_Acceptor.m_ListenFd, FIONBIO, &val);
+	unsigned long val = 1;
+	if (!ioctlsocket(m_Acceptor.m_ListenFd, FIONBIO, &val))
+	{
+		return false;
+	}
 
 	m_Acceptor.m_addr.sin_family = AF_INET;
 	if (inet_pton(AF_INET, ip, &m_Acceptor.m_addr.sin_addr.s_addr) < 0)
@@ -78,13 +91,6 @@ bool IocpNetMgr::Initialize(NetCallBack* call, Int32 iMaxThread, const char* ip,
 		return false;
 	}
 
-	unsigned long val = 1;
-	int nb = ioctlsocket(m_Acceptor.m_ListenFd, FIONBIO, &val);
-	if (nb != NO_ERROR)
-	{
-		return false;
-	}
-
 	if (listen(m_Acceptor.m_ListenFd, 128) != 0)
 	{
 		m_Acceptor.Clear();
@@ -97,7 +103,7 @@ bool IocpNetMgr::Initialize(NetCallBack* call, Int32 iMaxThread, const char* ip,
 		return false;
 	}
 
-	PostAccept();
+	PostAccept(&m_Acceptor);
 	return true;
 }
 
@@ -128,52 +134,63 @@ void IocpNetMgr::WorkerProc()
 		{
 			return;
 		}
+		else if ((CompletionKey)comKey == CompletionKey::CK_ACCPET)
+		{
+			Acceptor* pAcceptor= ((AcceptOverlapped*)overLapped)->m_Acceptor;
+			OnAccept(pAcceptor);
+			PostAccept(pAcceptor);
+		}
+		else if ((CompletionKey)comKey == CompletionKey::CK_CONNECT) 
+		{
 
-		if (overLapped != nullptr)
-		{
-			((Overlapped*)overLapped)->handler->OnMessage(bRet, (CompletionKey)comKey, num);
-		}
-		if ((CompletionKey)comKey == CompletionKey::CK_ACCPET)
-		{
-			PostAccept();
-			continue;
-		}
-		switch (((Overlapped*)overLapped)->tagReqHandle)
-		{
-		case TRQ_NONE:
+			switch (((Overlapped*)overLapped)->tagReqHandle)
+			{
+			case TRH_SEND:
+			{
+
+			}
 			break;
-		case TRH_SEND:
+			case TRH_RECV:
+			{
+
+			}
 			break;
-		case TRH_RECV:
-			break;
-		default:
-			break;
+			case TRQ_NONE:
+			default:
+				break;
+			}
 		}
 
 	}
 }
 
-void IocpNetMgr::PostAccept()
+void IocpNetMgr::PostAccept(Acceptor* acceptor)
 {
+	if (acceptor == nullptr) {
+		return;
+	}
+	/*if (acceptor->m_SockFd != C_INVALID_SOCKET) {
+		//PushConnect(acceptor->m_SockFd);
+	}*/
 	int t = 10;
 	while (t--)
 	{
-		m_Acceptor.m_SockFd = C_INVALID_SOCKET;
-		memset(m_Acceptor.m_Buffer, 0, sizeof(m_Acceptor.m_Buffer));
+		acceptor->m_SockFd = C_INVALID_SOCKET;
+		memset(acceptor->m_Buffer, 0, sizeof(acceptor->m_Buffer));
 
-		m_Acceptor.m_SockFd = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-		if (m_Acceptor.m_SockFd == C_INVALID_SOCKET)
+		acceptor->m_SockFd = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+		if (acceptor->m_SockFd == C_INVALID_SOCKET)
 		{
 			Sleep(1);
 			break;
 		}
 		DWORD bytes = 0;
-		if (!m_lpfnAcceptEx(m_Acceptor.m_ListenFd, m_Acceptor.m_SockFd, m_Acceptor.m_Buffer, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &bytes, m_Acceptor))
+		if (!m_lpfnAcceptEx(acceptor->m_ListenFd, acceptor->m_SockFd, acceptor->m_Buffer, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &bytes, &acceptor->m_Overlapped))
 		{
 			if (WSAGetLastError() != ERROR_IO_PENDING)
 			{
-				closesocket(m_Acceptor.m_SockFd);
-				m_Acceptor.m_SockFd = C_INVALID_SOCKET;
+				closesocket(acceptor->m_SockFd);
+				acceptor->m_SockFd = C_INVALID_SOCKET;
 				Sleep(1);
 				continue;
 			}
@@ -182,6 +199,22 @@ void IocpNetMgr::PostAccept()
 	}
 	//error
 	return;
+}
+
+void IocpNetMgr::OnAccept(Acceptor* acceptor)
+{
+	PushData* data = new PushData();
+	data->pConnector = std::make_shared<Connector>(acceptor->m_SockFd);
+	data->pData = nullptr;
+
+	int allocId = m_allocID.fetch_add(1);
+	m_ConnMutex.lock();
+	m_Connectors[allocId] = data->pConnector;
+	m_ConnMutex.unlock();
+
+	m_PushMutex.lock();
+	m_PushDatas.push_back(data);
+	m_PushMutex.unlock();
 }
 
 #endif // WINDOWS_FLAG

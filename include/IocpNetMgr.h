@@ -5,9 +5,12 @@
 #include <NetMgrDef.h>
 #ifdef WINDOWS_FLAG
 #include <Acceptor.h>
+#include <Connector.h>
 #include <functional>
 #include <thread>
 #include <vector>
+#include <list>
+#include <map>
 
 
 const UInt32 MAX_THREAD_NUM = 100;
@@ -20,13 +23,22 @@ class IocpNetMgr:public NetMgr
 
 	void WorkerProc();
 
-	void PostAccept();
+	void PostAccept(Acceptor* acceptor);
+
+	void OnAccept(Acceptor* acceptor);
 private:
 
 	SocketFd	 m_ListenSock;
 	HANDLE		 m_IocpHandle;
 	std::vector<std::thread*> m_WorkerThread;
-	OverlappedWrapper<Acceptor>		m_Acceptor;
+	Acceptor		m_Acceptor;
+
+	std::mutex			m_PushMutex;
+	std::vector<PushData*> m_PushDatas;
+
+	std::mutex			m_ConnMutex;
+	std::map<UInt32,std::shared_ptr<Connector>> m_Connectors;
+	std::atomic<int>		m_allocID;
 
 	LPFN_ACCEPTEX				 m_lpfnAcceptEx;
 	LPFN_GETACCEPTEXSOCKADDRS	 m_lpfnGetAcceptSockAddrs;

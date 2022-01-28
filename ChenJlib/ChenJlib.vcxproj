@@ -141,11 +141,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Acceptor.cpp" />
+    <ClCompile Include="Connector.cpp" />
     <ClCompile Include="IocpNetMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Acceptor.h" />
     <ClInclude Include="..\include\CommonDefine.h" />
+    <ClInclude Include="..\include\Connector.h" />
     <ClInclude Include="..\include\IocpNetMgr.h" />
     <ClInclude Include="..\include\NetBuffer.h" />
     <ClInclude Include="..\include\NetDef.h" />

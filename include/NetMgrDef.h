@@ -13,6 +13,9 @@ public:
 class NetMgr
 {
 public:
+	NetMgr():m_Call(nullptr) {};
+	virtual ~NetMgr() {};
+
 	virtual bool Initialize(NetCallBack* call, Int32 iMaxThread, const char* ip, UInt16 port) = 0;
 	virtual void Upadete() = 0;
 	virtual void Finialize() = 0;

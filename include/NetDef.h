@@ -90,6 +90,7 @@ enum CompletionKey
 {
 	CK_NONE = 0,
 	CK_ACCPET = 1,
+	CK_CONNECT = 2,
 	CK_THREAD_CLOSE = 2,
 };
 
@@ -99,6 +100,22 @@ enum TagReqHandle
 	TRH_SEND = 1,
 	TRH_RECV = 2,
 };
+
+class Connector;
+enum PushDataType
+{
+	PDT_NEW_CONNECT = 1,
+	PDT_RECV_DATA = 2,
+};
+//推送的消息
+struct PushData
+{
+	
+	PushDataType eType;
+	std::shared_ptr<Connector> pConnector;
+	char* pData;
+};
+/*
 struct IOCPHandler
 {
 	virtual void OnMessage(bool bSucc,CompletionKey key, UInt32 size) = 0;
@@ -106,13 +123,12 @@ struct IOCPHandler
 	virtual void Clear() {};
 };
 
-
+*/
 struct Overlapped : public OVERLAPPED
 {
-	IOCPHandler* handler;
 	TagReqHandle tagReqHandle;
 };
-
+/*
 template<class T>
 struct OverlappedWrapper : T
 {
@@ -124,7 +140,7 @@ struct OverlappedWrapper : T
 	}
 
 	operator OVERLAPPED* () { return &overlap; }
-};
+};*/
 #endif // WINDOWS_FLAG
 
 /*

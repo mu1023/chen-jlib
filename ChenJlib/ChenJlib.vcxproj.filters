@@ -21,6 +21,9 @@
     <ClCompile Include="Acceptor.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Connector.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\NetDef.h">
@@ -39,6 +42,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Acceptor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Connector.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

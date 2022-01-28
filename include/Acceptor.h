@@ -7,18 +7,13 @@
 #include<memory>
 
 class Acceptor;
-/*
-struct AcceptHandler : IOCPHandler
+
+struct AcceptOverlapped :public Overlapped
 {
-public:
-	void OnMessage(ULONG_PTR key, UInt32 size)override;
-
-	void Clear()override;
-
 	Acceptor* m_Acceptor;
-};*/
+};
 
-struct Acceptor : IOCPHandler
+struct Acceptor 
 {
 	friend class IocpNetMgr;
 public:
@@ -27,9 +22,9 @@ public:
 
 	bool Init(NetMgr* mgr);
 
-	void OnMessage(bool bSucc,CompletionKey key, UInt32 size)override;
+	void OnMessage(bool bSucc,CompletionKey key, UInt32 size);
 
-	void Clear()override;
+	void Clear();
 
 	NetMgr* m_NetMgr;
 	SocketFd m_ListenFd;
@@ -37,6 +32,6 @@ public:
 	SOCKADDR_IN		m_addr;
 	SocketFd		m_SockFd;
 	char			m_Buffer[256];
-	TagReqHandle    m_ReqType;
+	AcceptOverlapped  m_Overlapped;
 	//OverlappedWrapper<AcceptHandler> m_Overlapped;
 };
