@@ -4,6 +4,11 @@
 
 struct Connector;
 
+enum NetConnectionStatus
+{
+	NCS_CLOSE = 0,
+	NCS_NORMAL = 1,
+};
 struct Connector : public std::enable_shared_from_this<Connector>
 {
 public:
@@ -11,8 +16,10 @@ public:
 	const UInt32 READ_BUFFER_SIZE = 10000;
 
 
-	Connector(SocketFd fd) :m_SocketFd(fd) {};
+	Connector() :m_SocketFd(C_INVALID_SOCKET),m_Status(NetConnectionStatus::NCS_CLOSE) {};
 	~Connector() {};
+
+	void Init(SocketFd fd, NetConnectionStatus status, sockaddr* addr);
 
 	SocketFd GetFd() { return m_SocketFd; };
 
@@ -28,7 +35,7 @@ public:
 	NetBuffer					m_SendBuffer;
 	//OverlappedWrapper<ConnectorHandler>			m_SendHandler;
 
-
+	sockaddr_in m_Adder;
 	std::mutex				    m_Mutex;
-	//NetConnectionStatus			m_Status;
+	NetConnectionStatus			m_Status;
 };

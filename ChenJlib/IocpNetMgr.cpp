@@ -203,8 +203,34 @@ void IocpNetMgr::PostAccept(Acceptor* acceptor)
 
 void IocpNetMgr::OnAccept(Acceptor* acceptor)
 {
+	if (acceptor->m_SockFd == C_INVALID_SOCKET) {
+		return;
+	}
+
+	if (setsockopt(acceptor->m_SockFd, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&acceptor->m_ListenFd, sizeof(acceptor->m_ListenFd)) != 0)
+	{
+		closesocket(acceptor->m_SockFd);
+		return;
+	}
+	int flag = 1;
+	if (setsockopt(acceptor->m_SockFd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(flag)) != 0)
+	{
+		closesocket(acceptor->m_SockFd);
+		return;
+	}
+
+
+	sockaddr* paddr1 = NULL;
+	sockaddr* paddr2 = NULL;
+	int tmp1 = 0;
+	int tmp2 = 0;
+	m_lpfnGetAcceptSockAddrs(acceptor->m_Buffer, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &paddr1, &tmp1, &paddr2, &tmp2);
+
+		
+
 	PushData* data = new PushData();
-	data->pConnector = std::make_shared<Connector>(acceptor->m_SockFd);
+	data->pConnector = std::make_shared<Connector>();
+	data->pConnector->Init(acceptor->m_SockFd, NetConnectionStatus::NCS_NORMAL,paddr2);
 	data->pData = nullptr;
 
 	int allocId = m_allocID.fetch_add(1);
