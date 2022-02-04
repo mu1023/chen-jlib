@@ -147,7 +147,27 @@ void IocpNetMgr::WorkerProc()
 			{
 			case TRH_SEND:
 			{
-
+				Connector* pConnector = ((ConnectorOverlapped*)overLapped)->m_Connector;
+				if (pConnector)
+				{
+					pConnector->m_SendBuffer.Retrieve(num);
+					if (pConnector->m_SendBuffer.ReadableBytes() > 0)
+					{
+						pConnector->m_SendOverlapped.buf.buf = pConnector->m_SendBuffer.BeginRead();
+						pConnector->m_SendOverlapped.buf.len = pConnector->m_SendBuffer.ReadableBytes();
+						DWORD sendBytes = 0;
+						if (WSASend(pConnector->m_SocketFd, &pConnector->m_SendOverlapped.buf, 1, &sendBytes, 0, &(pConnector->m_SendOverlapped), nullptr) == C_SOCK_ERROR)
+						{
+							if (WSAGetLastError() != ERROR_IO_PENDING)
+							{
+								std::cout << "WSASend() failed. Error:" << GetLastError() << std::endl;
+								pConnector->Close();
+								PushCloseConn(pConnector->m_AllocID); 
+							}
+						}
+					}
+				}
+				
 			}
 			break;
 			case TRH_RECV:
@@ -233,14 +253,19 @@ void IocpNetMgr::OnAccept(Acceptor* acceptor)
 	data->pConnector->Init(acceptor->m_SockFd, NetConnectionStatus::NCS_NORMAL,paddr2);
 	data->pData = nullptr;
 
-	int allocId = m_allocID.fetch_add(1);
+	int allocID = m_allocID.fetch_add(1);
+	data->pConnector->SetAllocID(allocID);
 	m_ConnMutex.lock();
-	m_Connectors[allocId] = data->pConnector;
+	m_Connectors[allocID] = data->pConnector;
 	m_ConnMutex.unlock();
 
 	m_PushMutex.lock();
 	m_PushDatas.push_back(data);
 	m_PushMutex.unlock();
+}
+
+void IocpNetMgr::PushCloseConn(UInt32 allocID)
+{
 }
 
 #endif // WINDOWS_FLAG

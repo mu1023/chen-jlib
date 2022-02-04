@@ -11,6 +11,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <atomic>
 
 
 const UInt32 MAX_THREAD_NUM = 100;
@@ -30,6 +31,8 @@ class IocpNetMgr:public NetMgr
 	void PostAccept(Acceptor* acceptor);
 
 	void OnAccept(Acceptor* acceptor);
+
+	void PushCloseConn(UInt32 allocID);
 private:
 
 	SocketFd	 m_ListenSock;
