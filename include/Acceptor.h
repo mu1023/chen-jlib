@@ -1,5 +1,6 @@
 #pragma once
-
+#ifndef _ACCEPTOR_H_
+#define _ACCEPTOR_H_
 
 #include<NetDef.h>
 #include<NetMgrDef.h>
@@ -10,7 +11,9 @@ class Acceptor;
 
 struct AcceptOverlapped :public Overlapped
 {
-	Acceptor* m_Acceptor;
+	Acceptor*		m_Acceptor;
+	SocketFd		m_SockFd;
+	char			m_Buffer[256];
 };
 
 struct Acceptor 
@@ -22,16 +25,14 @@ public:
 
 	bool Init(NetMgr* mgr);
 
-	void OnMessage(bool bSucc,CompletionKey key, UInt32 size);
-
 	void Clear();
 
 	NetMgr* m_NetMgr;
 	SocketFd m_ListenFd;
 
 	SOCKADDR_IN		m_addr;
-	SocketFd		m_SockFd;
-	char			m_Buffer[256];
-	AcceptOverlapped  m_Overlapped;
+	
+	std::vector<AcceptOverlapped>  m_Overlapped;
 	//OverlappedWrapper<AcceptHandler> m_Overlapped;
 };
+#endif _ACCEPTOR_H_

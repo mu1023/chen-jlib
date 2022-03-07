@@ -1,7 +1,7 @@
-#pragma once
+#ifndef _COMMON_DEFINE_H_
+#define _COMMON_DEFINE_H_
 
 #include<stdio.h>
-
 
 #if (defined _WIN32) || (defined _WIN64) || (defined WIN32)||(defined WIN64)
 #define WINDOWS_FLAG 1
@@ -42,5 +42,6 @@
 
 #define fwriteUnlock(buffer,size,count,stream)  fwrite_unlocked(buffer,size,count,stream);
 
-#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
+#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==nullptr
 #endif
+#endif // !_COMMON_DEFINE_H_

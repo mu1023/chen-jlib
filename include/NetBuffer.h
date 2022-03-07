@@ -13,7 +13,7 @@ class	NetBuffer
 {
 public:
 	static const UInt32 CheapPrepend = 8;
-	static const UInt32 InitialSize = 1024;
+	static const UInt32 InitialSize = 8192;
 	static const UInt32	MaxSize = 1000000;
 
 	explicit NetBuffer(UInt32 initialSize = InitialSize)
@@ -234,7 +234,6 @@ public:
 	{
 		Align();
 		EnsureWritableBytes(ReadableBytes() + reserve);
-		m_Data.resize(m_EndIndex + reserve);
 		m_Data.shrink_to_fit();
 	}
 private:

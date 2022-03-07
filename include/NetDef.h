@@ -1,4 +1,8 @@
 #pragma once
+#ifndef _NET_DEF_H_
+
+#define _NET_DEF_H_
+
 #include <iostream>
 #include <mutex>
 #include <WinSock2.h>
@@ -84,14 +88,12 @@ inline int sock_error()
 }
 
 
-#ifdef WINDOWS_FLAG
-
 enum CompletionKey
 {
 	CK_NONE = 0,
 	CK_ACCPET = 1,
 	CK_CONNECT = 2,
-	CK_THREAD_CLOSE = 2,
+	CK_THREAD_CLOSE = 3,
 };
 
 enum TagReqHandle
@@ -101,19 +103,34 @@ enum TagReqHandle
 	TRH_RECV = 2,
 };
 
-class Connector;
+class ConnSock;
 enum PushDataType
 {
+	PDT_NONE = 0,
 	PDT_NEW_CONNECT = 1,
 	PDT_RECV_DATA = 2,
+	PDT_CONN_CLOSE = 3,
 };
 //推送的消息
 struct PushData
 {
-	
+	PushData()
+	{
+		eType = PDT_NONE;
+		pConnSock = nullptr;
+		iAllocID  = 0;
+	}
+	void Init()
+	{
+		eType = PDT_NONE;
+		pConnSock = nullptr;
+		kNetBuff.RetrieveAll();
+		iAllocID = 0;
+	}
 	PushDataType eType;
-	std::shared_ptr<Connector> pConnector;
-	char* pData;
+	std::shared_ptr<ConnSock>  pConnSock;
+	NetBuffer	kNetBuff;
+	UInt32 iAllocID;
 };
 /*
 struct IOCPHandler
@@ -128,64 +145,6 @@ struct Overlapped : public OVERLAPPED
 {
 	TagReqHandle tagReqHandle;
 };
-/*
-template<class T>
-struct OverlappedWrapper : T
-{
-	Overlapped overlap;
-
-	OverlappedWrapper() {
-		ZeroMemory(&overlap, sizeof(overlap));
-		overlap.handler = this;
-	}
-
-	operator OVERLAPPED* () { return &overlap; }
-};*/
-#endif // WINDOWS_FLAG
-
-/*
-
-enum NetConnectionType
-{
-	NCT_ACTIVE,	//主动连接
-	NCT_PASSIVE,	//被动连接
-};
 
 
-enum NetConnectionStatus
-{
-	NCS_CLOSED,			//初始状态，还没连接
-	NCS_VERIFY,			//验证阶段
-	NCS_NORMAL			//正常通信状态
-};
-class Connector : public std::enable_shared_from_this<Connector>
-{
-public:
-	const UInt32 WRITE_BUFFER_SIZE = 10000;
-	const UInt32 READ_BUFFER_SIZE = 10000;
-
-
-	Connector(SocketFd fd) :m_Fd(fd) {};
-	~Connector() {};
-
-	virtual void HandleRead() = 0;
-
-	virtual void HandleWrite() = 0;
-
-	virtual void HandleError() = 0;
-
-	SocketFd GetFd();
-
-	UInt32 Write(const char* msg, UInt32 len);
-
-	virtual void Close() = 0;
-
-protected:
-
-	SocketFd					m_Fd;
-
-	NetBuffer					m_ReadBuffer;
-	NetBuffer					m_WriteBuffer;
-	std::mutex				    m_Mutex;
-	NetConnectionStatus			m_Status;
-};*/
+#endif // !_NET_DEF_H_
