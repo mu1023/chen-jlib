@@ -2,6 +2,8 @@
 #define _COMMON_DEFINE_H_
 
 #include<stdio.h>
+namespace cj
+{
 
 #if (defined _WIN32) || (defined _WIN64) || (defined WIN32)||(defined WIN64)
 #define WINDOWS_FLAG 1
@@ -44,4 +46,6 @@
 
 #define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==nullptr
 #endif
+}
+
 #endif // !_COMMON_DEFINE_H_

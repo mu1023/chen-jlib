@@ -115,7 +115,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FMT_HEADER_ONLY;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -141,18 +141,42 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Acceptor.cpp" />
-    <ClCompile Include="Connector.cpp" />
+    <ClCompile Include="EpollNetMgr.cpp" />
+    <ClCompile Include="Formatter.cpp" />
+    <ClCompile Include="Logging.cpp" />
+    <ClCompile Include="NetSock.cpp" />
     <ClCompile Include="IocpNetMgr.cpp" />
+    <ClCompile Include="TimeTool.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\Acceptor.h" />
+    <ClInclude Include="..\include\AppenderBase.h" />
     <ClInclude Include="..\include\CommonDefine.h" />
-    <ClInclude Include="..\include\Connector.h" />
+    <ClInclude Include="..\include\ConsoleAppender.h" />
+    <ClInclude Include="..\include\EpollNetMgr.h" />
+    <ClInclude Include="..\include\FileAppender.h" />
+    <ClInclude Include="..\include\fmt\chrono.h" />
+    <ClInclude Include="..\include\fmt\color.h" />
+    <ClInclude Include="..\include\fmt\compile.h" />
+    <ClInclude Include="..\include\fmt\core.h" />
+    <ClInclude Include="..\include\fmt\format-inl.h" />
+    <ClInclude Include="..\include\fmt\format.h" />
+    <ClInclude Include="..\include\fmt\locale.h" />
+    <ClInclude Include="..\include\fmt\os.h" />
+    <ClInclude Include="..\include\fmt\ostream.h" />
+    <ClInclude Include="..\include\fmt\posix.h" />
+    <ClInclude Include="..\include\fmt\printf.h" />
+    <ClInclude Include="..\include\fmt\ranges.h" />
+    <ClInclude Include="..\include\Formatter.h" />
+    <ClInclude Include="..\include\Logging.h" />
+    <ClInclude Include="..\include\NetSock.h" />
     <ClInclude Include="..\include\IocpNetMgr.h" />
     <ClInclude Include="..\include\NetBuffer.h" />
     <ClInclude Include="..\include\NetDef.h" />
     <ClInclude Include="..\include\NetMgrDef.h" />
+    <ClInclude Include="..\include\Noncopyable.h" />
+    <ClInclude Include="..\include\Singleton.h" />
+    <ClInclude Include="..\include\TimeTool.h" />
+    <ClInclude Include="..\include\UdpAppender.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

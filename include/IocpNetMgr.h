@@ -4,8 +4,7 @@
 
 #include <NetMgrDef.h>
 #ifdef WINDOWS_FLAG
-#include <Acceptor.h>
-#include <Connector.h>
+#include <NetSock.h>
 #include <functional>
 #include <thread>
 #include <vector>
@@ -13,70 +12,72 @@
 #include <map>
 #include <atomic>
 
-
-const UInt32 MAX_THREAD_NUM = 100;
-
-class IocpNetMgr:public NetMgr
+namespace cj
 {
-public:
-	IocpNetMgr();
-	~IocpNetMgr();
+	const UInt32 MAX_THREAD_NUM = 100;
 
-	bool Initialize(NetCallBack* call, Int32 iMaxThread) override;
-	void Upadete() override;
-	void Finialize() override;
+	class IocpNetMgr :public NetMgr
+	{
+	public:
+		IocpNetMgr();
+		~IocpNetMgr();
 
-	bool Listen(Int32 iListenPort, Int32 iListenNum);
+		bool Initialize(NetCallBack* call, Int32 iMaxThread) override;
+		void Upadete() override;
+		void Finialize() override;
 
-	bool Connect(const char* ip,UInt16 iPort);
+		bool Listen(Int32 iListenPort, Int32 iListenNum);
 
-	void WorkerProc();
+		bool Connect(const char* ip, UInt16 iPort);
 
-	bool PostAccept(AcceptOverlapped& rOverlapped);
+		void WorkerProc();
 
-	void OnAccept(AcceptOverlapped* pkOverlapped);
+		bool PostAccept(AcceptOverlapped& rOverlapped);
 
-	void PushLogicData(PushData* data);
+		void OnAccept(AcceptOverlapped* pkOverlapped);
 
-	void PushDisconnectConn(std::shared_ptr<ConnSock>& rConnSock);
+		void PushLogicData(PushData* data);
 
-	//关闭一个链接
-	void DisconnectConn(UInt32 allocID);
+		void PushDisconnectConn(std::shared_ptr<ConnSock>& rConnSock);
 
-	//处理发送
-	void HandleSend(ConnectIoContext* pContext, UInt32 dwSize);
+		//关闭一个链接
+		void DisconnectConn(UInt32 allocID);
 
-	void HandleRecv(ConnectIoContext* pContext, UInt32 dwSize);
+		//处理发送
+		void HandleSend(ConnectIoContext* pContext, UInt32 dwSize);
 
-	bool SendData(std::shared_ptr<ConnSock >& pConnSock, const char* data, UInt16 len);
+		void HandleRecv(ConnectIoContext* pContext, UInt32 dwSize);
 
-	PushData* CreatePushData();
+		bool SendData(std::shared_ptr<ConnSock >& pConnSock, const char* data, UInt16 len);
 
-	void RecyclePushData(PushData* pData);
+		PushData* CreatePushData();
 
-	bool CreateSockConn(SocketFd sFd, sockaddr* pAddr, ConnType eConnType);
-private:
+		void RecyclePushData(PushData* pData);
 
-	HANDLE		 m_IocpHandle;
-	std::vector<std::thread*> m_WorkerThread;
-	Acceptor		m_Acceptor;
+		bool CreateSockConn(SocketFd sFd, sockaddr* pAddr, ConnType eConnType);
+	private:
 
-	std::mutex			m_PushMutex;
-	std::vector<PushData*> m_PushDatas;
+		HANDLE		 m_IocpHandle;
+		std::vector<std::thread*> m_WorkerThread;
+		Acceptor		m_Acceptor;
 
-	std::mutex			m_ConnMutex;
-	std::map<UInt32,std::shared_ptr<ConnSock>> m_ConnSocks;
-	std::atomic<int>		m_allocID;
+		std::mutex			m_PushMutex;
+		std::vector<PushData*> m_PushDatas;
 
-	LPFN_ACCEPTEX				 m_lpfnAcceptEx;
-	LPFN_GETACCEPTEXSOCKADDRS	 m_lpfnGetAcceptSockAddrs;
+		std::mutex			m_ConnMutex;
+		std::map<UInt32, std::shared_ptr<ConnSock>> m_ConnSocks;
+		std::atomic<int>		m_allocID;
 
-	std::mutex					m_FreePushDataMutex;
-	std::vector<PushData*>		m_FreePushDatas;
-	//NetBuffer			 m_GlobalBuffer;
-	//std::mutex			 m_GolbalBufferMutex;
-};
+		LPFN_ACCEPTEX				 m_lpfnAcceptEx;
+		LPFN_GETACCEPTEXSOCKADDRS	 m_lpfnGetAcceptSockAddrs;
+
+		std::mutex					m_FreePushDataMutex;
+		std::vector<PushData*>		m_FreePushDatas;
+		//NetBuffer			 m_GlobalBuffer;
+		//std::mutex			 m_GolbalBufferMutex;
+	};
 #endif // WINDOWS_FLAG
+}
 
 #endif
 

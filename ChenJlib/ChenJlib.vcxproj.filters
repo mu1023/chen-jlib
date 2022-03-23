@@ -13,15 +13,27 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="头文件\fmt">
+      <UniqueIdentifier>{c7782dc1-97cf-487f-b7a6-5a0404a9227f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IocpNetMgr.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Acceptor.cpp">
+    <ClCompile Include="NetSock.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Connector.cpp">
+    <ClCompile Include="EpollNetMgr.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Formatter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeTool.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,11 +53,74 @@
     <ClInclude Include="..\include\IocpNetMgr.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Acceptor.h">
+    <ClInclude Include="..\include\NetSock.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Connector.h">
+    <ClInclude Include="..\include\EpollNetMgr.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\AppenderBase.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ConsoleAppender.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\FileAppender.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Formatter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Logging.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Noncopyable.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Singleton.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\UdpAppender.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\TimeTool.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fmt\chrono.h">
+      <Filter>头文件\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fmt\color.h">
+      <Filter>头文件\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fmt\compile.h">
+      <Filter>头文件\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fmt\core.h">
+      <Filter>头文件\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fmt\format.h">
+      <Filter>头文件\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fmt\format-inl.h">
+      <Filter>头文件\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fmt\locale.h">
+      <Filter>头文件\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fmt\os.h">
+      <Filter>头文件\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fmt\ostream.h">
+      <Filter>头文件\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fmt\posix.h">
+      <Filter>头文件\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fmt\printf.h">
+      <Filter>头文件\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\fmt\ranges.h">
+      <Filter>头文件\fmt</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

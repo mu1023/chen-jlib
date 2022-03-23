@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <IocpNetMgr.h>
+#include <Logging.h>
+using namespace cj;
 bool m_Run = true;
 class TestClientNetCallBack : public NetCallBack
 {
@@ -60,6 +62,10 @@ public:
 };
 int main()
 {
+    std::shared_ptr<cj::AppenderBase> consoleAppender = std::make_shared<cj::ConsoleAppender<cj::NullMutex>>();
+    cj::Logger::Instance()->InsertAppenderPtr(consoleAppender);
+    LOGGER_DEBUG("{0},{1}", "das", 1);
+
     SOCKET_STARTUP
     IocpNetMgr client;
     TestClientNetCallBack   cb;
